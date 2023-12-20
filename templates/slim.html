@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block main %}
+
+<h1>SLim4</h1>
+<h2>
+    Creo index.php
+</h2>
+<p>Creo el index.php.Levanto el autoload del vendor , para que levante todo lo que descargamos</p>
+<pre>
+&lt;? php
+require_once __DIR__."/vendor/autoload.php";
+?&gt;
+</pre>
+<h2> Indico que vamos a trabajar con slim</h2>
+<p>
+    Creo instancia encargada de manejar todo lo relacionado a slim.Para esto hay q inidcar de donde viene. Lo hago a
+    traves del <code>use </code>.
+    . Esta es la manera en la que vamos a trabajar, lo que necesitemos vamos a importarlo de una parte de la libreria
+    descargada. en éste caso vamos a necesitar AppFactory
+</p>
+<pre>
+    &lt;? php
+    use Slim\Factory\AppFactory; 
+    $app=AppFactory::create(); 
+    ?&gt;
+    </pre>
+<p> Con el use indico que el objeto appFactory debe estar en una carpeta Factory donde se encuentra el core de slim
+    (puedo fijarme en en composer.json en el autoload que me indica donde buscar los archivos que comienzen con el
+    prefijo slim </p>
+
+<h2>Defino rutas</h2>
+<p>Establezco como se va a comportar la app con cada página que pida</p>
+<pre>
+
+ $app->get(/,function(Request $request , Response $response,array $args){
+    
+ //   las funciones q son respuesta de una peticone tienen 3 argumento , deben retornar un objeto response
+ //esto lo recomienda  slim ,en el PSR7  para ello agregar 
+ //use Psr\Http\Message\ResponseInterface as Response;
+ //use Psr\Http\Message\ServerRequestInterface as Request;
+
+});
+
+$app->post(/,function(Request $req,Response $res,$args){
+
+    response->getBody()->write(""hola mundo);
+});
+
+$app->run();
+//levanto servidor integrado  en la terminal 
+php -S localhost:8888
+
+    </pre>
+<p> De esta forma nuestra app escucha peticiones get y post a la raiz de nuestra app // </p>
+<p>Como esta rutas en realidad NO existen debo desirle a slim que trabaje con el motor de url amigables o el
+    motor de reescritura q tiene el apache integrado. es decir le indico q voy a usar URL falsas y q es lo q debe hacer
+    con ellas
+    . en este caso mandarlas al index q es el q maneja todas las peticiones
+    la documentacion te indica q tener q crear el archivo de congifuracion .htaccess </p>
+<pre>
+            .htaccess
+            RewriteEngine On
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{REQUEST_FILENAME} !-d
+            RewriteRule ^ index.php [QSA,L]
+        </pre>
+<p>
+    Esto activa el modo de reescritura de URL amigables y establece una regla que indica que todo lo que se reciba
+    se lo mande al index.php . Tambien antes de eso tiene dos condiciones: fijarse que lo se este pidindo no sea un
+    archivo y que no
+    o tipo directorty. Es decir si pido un archivo .css no lo redirecciones al index sino q sumistrame el archivo</p>
+
+<h2>Controllers</h2>
+<p>Podemos escribir toda la logica de la aplicación en el index.php y en las funciones que manejan las
+    peticiones.Definimos classes que funcionan como Controllers de las peticiones a las
+    distintas rutas y verbos. que van a manejar nuestros </p>
+<p>Creamos carpeta SRCy dentro otra Controllers. Y ahi colocaremos las clases con los mentodos manejadores .Por ejemplo:
+</p>
+<pre>
+                src/controllers  
+                BlogController.php
+                HomeController.php
+            
+               </pre>
+<h2> HomeControllers</h2>
+<p> Vamos a necesitar crear un namespace para referenciar desde el index.php </p>
+<pre>
+//namespace ALias\carpetas;
+namespace App\controllers;
+// para usar esta clase debo importarla con use App\controllers\HomeController;
+class HomeController{
+   // funciones q respondan  a las peticiones del home 
+   function index(Request $peticion, Response $response):Response{
+     $response->getBody()->write("home desde clase con metodo ".$peticion->getMethod());
+     return $response;
+   });
+            </pre>
+<p> Para que la aplicacion sepa donde esta el namespace colocado deboagregarlo en el composer.json</p>
+<p>Coloco en atributo autolod psr-4 indicando en namaspace y la ubicacion real , <mark>la carpeta debe terminar con /
+    </mark> </p>
+<pre>
+    el atributo autoload:
+    {
+        "psr-4":{
+            respetando mayuscula y miniscula y inidcando q es carpeta
+            "App\\":"src/" 
+            cualquier prefijo App/ lo va a buscar en el src
+        }
+    }
+</pre>
+<p>Ahora debo actulizar el composer.json entero o realizar un <code> composer dump-autoload</code> que solo actuliza eñ
+    autoload
+</p>
+<h2>Modifico index</h2>
+<p> Una vez que tengo las clases manejadoras , hago uso de ellas colocando el nombre de la clase
+    <code>::clase.'index'</code> punto para concatenar con un string con el nombre del metodo sin ()
+</p>
+<pre>
+use App\controllers\HomeController                
+                $app->get("/home",HomeController::class.':index');
+                $app->get("/blog",Blogontroller::class.':index');
+            </pre>
+<p>Otro forma de hacerlo es colocando como segundo parametro un string con la ruta a la classe y el metodo</p>
+<pre>
+                $app->get("/blog",'App\controllers\BlogController:index');
+            </pre>
+<p>
+    Se recomienda cuando solo se una vez si lo voy a usar mas una vez conviene importarlo con use
+</p>
+
+{% endblock %}

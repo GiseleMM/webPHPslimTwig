@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block main %}
+<h1>twig</h1>
+<p>Como respuesta a la peticiones podemos colocar toda la respueta y nuestro html en con la funcion write:</p>
+<pre>
+    $response->getBody()->write("&lt;h1&gt;hola mundo&lt;/h1&gt;");
+</pre>
+
+<p>Pero esto no es muy practico ni mantenible. Por manejar las vista podemos usar Twig.</p>
+<h2>Importo Twig</h2>
+<p>Primero debemos importar la libreria twig para crear nuestro objeto que se encarga de las vistas.Usamos el metodo de clase create,
+al cual le pasomos la ubicacion de los templates(vistas) y como segundo parametro una array de configuracion . En este caso solo colocamos
+que la cache sea falsa ,para evitar que se cree cache.
+</p>
+<code>
+    use Slim\Views\Twig;
+    //creacion del objeto 
+    $twig= Twig::create(__DIR__."/templates",['cache']=>false);
+</code>
+<p> Pero  para que la aplicacion la pueda  usar debemos agregarla a la aplicaion . Esto se logra atraves de un <mark> middleware </mark>.</p>
+<p>Es decir a traves de una accion intermedia entre qu se realiza la peticion y se produce la respuesta.Por lo general los middleware son validacion o autenticaciones, pero en nuestro caso, va ser agregar el motor de plantillas de twig</p>
+<h2>Importo middleware</h2>
+<pre>
+    // importo el middleware
+    use Slim\Views\TwigMiddleware;
+    // creo middleware de  twig  pasando a qué(a la app de slim) 
+    y qué( el objeto twig anteriormente creado)
+    $mwTwig=TwingMiddleware::create($app,$twig);
+    //lo agrego a la aplicacion
+    $app->add($mwTwig);
+</pre>
+<p>Ahora en cada controllador de  respuesta a la peticion puedo hacer uso del objeto twig para ofrecer una vista acorde.
+</p>
+<p>Primero debemos crear una vista a partir de la peticion,  invocamos a  metodo de clase fromRequest(peticion) al cual le pasamos el request.</p>
+<p>	Toda funcion que maneja una peticion debe devolver un objeto response , por ello twig ofrece la funcion  de instancia <code>render </code>que retorna una
+    repuesta con el html que le pasomos. Hacemos uso de la vista creada a partir de la peticion para llamar a esa funcion .La funcion render recibe 3 argumentos.
+</p>
+
+<u>
+    <li>el response </li>
+    <li>la vista que queremos usar</li>
+    <li> argumento que le vamos a pasar a la vista desde este controllador</li>
+</u>
+<pre>
+    use Slim\Views\Twig;
+class HomeController
+{
+    function index(Request $peticion, Response $response):Response{
+   
+
+        $view=Twig::fromRequest($peticion); // creo vista a partir de la peticion/request
+
+        $parametros=[
+            'tile'=>"Home proyecto"
+        ];//va a tener todo lo q yo quiera pasar al segundo argumento del la funcion render 
+        // del lado del html todo lo que pongamos como indices del array va a llegar como  
+        //variables q se puden mostrar con {{title}} sin comillas
+
+        return $view->render($response,"home.html",$parametros);
+    }
+}
+</pre>
+<p>De esta forma podriamos tener un archivo distinto como respuesta a cada peticion</p><p> O se podria usarel motor de  templates de twing 
+    para crear una archivo que funcione como base de todas las vistas y modificar solo lo particular de cada vista y el contenido de cada archivo
+</p>
+<h2>Template base</h2>
+<p> Creo en la carpeta  que colocamos como  parametro en la creacion de twig , un documento base.html</p>
+<pre>
+    &lt;!DOCTYPE html&lt;
+    &lt;html lang="en"&lt;
+    &lt;head&lt;
+    &lt;meta charset="UTF-8"&lt;
+    
+    &lt;meta name="keywords" content="slim4,twig,proyecto"&lt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&lt;
+    &lt;link rel="stylesheet" href="./../assets/css/style.css"&lt;
+    &lt;title&lt; &lcub; &lcub;title &rcub;&rcub; &lt;/title&lt;// si en el 
+    //segundo parametro
+    // envio un array con clave title se coloca ahi
+    &lt;/head&lt;
+    &lt;body&lt;
+    &lt;header&lt;
+    &lt;/header&lt;
+    &lt;main&lt;
+    &lcub;% block main % &rcub;
+    aca va a estar el contenido que estará entre este 
+    mismo bloque en los archivos q extends de este
+    &lcub;% endblock % &rcub;
+    &lt;/main&lt;
+    &lt;footer&lt;
+    &lt;/footer &lt;
+    &lt;/body&lt;
+    &lt;/html&lt;
+</pre>
+<h2>Extiendo vistas desde template base</h2>
+<pre>
+
+    &lcub;% extends 'base.html' %&rcub;
+   
+    &lcub;% block main % &rcub;
+    
+    &lt;h1&lt;SLim4 &lt;/h1&lt;
+    
+    &lt;p&lt;Lorem ipsum dolor, sit amet consectetur adipisicing elit. Natus facilis ae obcaecati aspernatur sint.&lt;/p&lt;
+    &lt;p&lt;Lorem ipsum dolor sit amet consectetur, adipisicing elit. Magni, facere corrupti perferendis asperiores.&lt;/p&lt;
+
+    &lcub;% endblock %&rcub;
+
+</pre>
+{% endblock %}

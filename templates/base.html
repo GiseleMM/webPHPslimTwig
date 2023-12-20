@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="keywords" content="slim4,twig,proyecto">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./../assets/css/style.css">
+    <link rel="shortcut icon" href="./../assets/images/favicon.ico" type="image/x-icon">
+    <title>{{title}}</title>
+</head>
+<body>
+    <header>
+<nav>
+    <ul>
+        <li><a href="/"{% if seccion=='home' %}class="actual"{% endif %}>Home</a></li>
+        <li><a href="/slim4"{% if seccion=='slim4' %}class="actual"{% endif %}>Slim4</a></li>
+        <li><a href="/twig"{% if seccion=='twig' %}class="actual"{% endif %}>Twig</a></li>
+
+    </ul>
+</nav>
+    </header>
+    <main>
+{% block main %}
+aca va a esatr el contenido q esta entre este mismo bloque en los archivos q extends de este
+{% endblock %}
+    </main>
+    <footer>
+        Copyrigth &#169; 2023
+    </footer>
+</body>
+</html>
